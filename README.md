@@ -5,36 +5,113 @@ Matter data model.
 
 See the [docs](https://docs.espressif.com/projects/esp-matter/en/latest/esp32/developing.html) for more information about building and flashing the firmware.
 
-## 1. Additional Environment Setup
+# Requirements
+    
+    Host: Ubuntu 20.04 or 22.04
+    Repository: esp-idf, esp-matter, connectedhomeip
+    Board: ESP32-C6-DevKitM-1
+    Testing: ST-App, WCH (Hub V3 or Harman Speaker is also fine), WiFi (Open Internet)
 
-No additional setup is required.
+# Host Setup
 
-## 2. Post Commissioning Setup
+You should install drivers and support packages for your development host. Linux is a supported development hosts for Matter, the recommended host versions are:
+Ubuntu 20.04 or 22.04 LTS
 
-No additional setup is required.
+# Setup esp-idf SDK
 
-## 3. Device Performance
+## Install Prerequisites for esp-idf
 
-### 3.1 Memory usage
+In order to use ESP-IDF with the ESP32, you need to install some software packages based on your Operating System. To compile using ESP-IDF you will need to get the following packages. The command to run depends on which distribution of Linux you are using:
 
-The following is the Memory and Flash Usage.
+Ubuntu and Debian:
 
--   `Bootup` == Device just finished booting up. Device is not
-    commissionined or connected to wifi yet.
--   `After Commissioning` == Device is conneted to wifi and is also
-    commissioned and is rebooted.
--   device used: esp32c3_devkit_m
--   tested on:
-    [6a244a7](https://github.com/espressif/esp-matter/commit/6a244a7b1e5c70b0aa1bf57254f19718b0755d95)
-    (2022-06-16)
+    sudo apt-get install git wget flex bison gperf python3 \
+        python3-venv cmake ninja-build ccache libffi-dev \
+        libssl-dev dfu-util libusb-1.0-0
 
-|                         | Bootup | After Commissioning |
-|:-                       |:-:     |:-:                  |
-|**Free Internal Memory** |108KB   |105KB                |
+- CMake version 3.16 or newer is required for use with ESP-IDF. Run “tools/idf_tools.py install cmake” to install a suitable version if your OS versions doesn’t have one.
 
-**Flash Usage**: Firmware binary size: 1.26MB
+- If you do not see your Linux distribution in the above list then please check its documentation to find out which command to use for package installation.
 
-This should give you a good idea about the amount of free memory that is
-available for you to run your application's code.
+## Getting the Repository esp-idf
 
-Applications that do not require BLE post commissioning, can disable it using app_ble_disable() once commissioning is complete. It is not done explicitly because of a known issue with esp32c3 and will be fixed with the next IDF release (v4.4.2).
+    git clone --recursive https://github.com/espressif/esp-idf.git
+    cd esp-idf; git checkout v5.2.1; git submodule update --init --recursive;
+    ./install.sh
+    cd ..
+
+## Configuring the Environment
+
+This should be done each time a new terminal is opened
+
+    cd esp-idf; source ./export.sh; cd ..
+
+# ESP Matter Setup
+
+There are two options to setup esp-matter, you can select one according to demand:
+- ESP matter repository, including esp-matter SDK and tools (e.g., CHIP-tool, CHIP-cert, ZAP, …).
+- ESP matter component, including esp-matter SDK.
+
+## Installing prerequisites for Linux
+
+On Debian-based Linux distributions such as Ubuntu, these dependencies can be satisfied with the following command:
+
+    sudo apt-get install git gcc g++ pkg-config libssl-dev libdbus-1-dev \
+         libglib2.0-dev libavahi-client-dev ninja-build python3-venv python3-dev \
+         python3-pip unzip libgirepository1.0-dev libcairo2-dev libreadline-dev
+
+### UI builds
+
+If building -with-ui variant, also install SDL2:
+
+    sudo apt-get install libsdl2-dev
+
+## ESP-Matter Repository
+
+Cloning the esp-matter repository takes a while due to a lot of submodules in the upstream connectedhomeip, so if you want to do a shallow clone use the following command:
+
+    cd esp-idf
+    source ./export.sh
+    cd ..
+    git clone --depth 1 https://github.com/espressif/esp-matter.git
+    cd esp-matter
+    git submodule update --init --depth 1
+    cd ./connectedhomeip/connectedhomeip
+    ./scripts/checkout_submodules.py --platform esp32 linux --shallow
+    cd ../..
+    ./install.sh
+    cd ..
+
+As of writing (dated May 17, 2024 ), the HEAD or latest code of esp-matter is having some issue. This issue may be fixed in future.
+
+Author has tested with below commit on Ubuntu 22.04 & Ubuntu 20.04.
+
+    commit bd3cadcf25944aaf709879fd4bb3f957e0d64894 (HEAD -> main)
+    Author: Shubham Patil shubham.patil@espressif.com
+    Date: Thu Jan 11 20:18:17 2024 +0530
+    indent the code
+
+Command Sequences are given below which used a specific commit.
+
+    cd esp-idf
+    source ./export.sh
+    cd ..
+    #Full clone
+    git clone https://github.com/espressif/esp-matter.git
+    cd esp-matter
+    #Reset to a Specific Commit
+    git reset --hard bd3cadcf25944aaf709879fd4bb3f957e0d64894
+    git submodule update --init --depth 1
+    cd ./connectedhomeip/connectedhomeip
+    ./scripts/checkout_submodules.py --platform esp32 linux --shallow
+    cd ../..
+    ./install.sh
+    cd ..
+
+ 
+### Configuring the Environment
+
+This should be done each time a new terminal is opened
+
+    cd esp-idf; source ./export.sh; cd ..
+    cd esp-matter; source ./export.sh; cd ..
